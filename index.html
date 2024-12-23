@@ -237,12 +237,31 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
+    function handleTouchMove(event) {
+    const touchX = event.touches[0].clientX; // Agafem la posició X del primer toc
+    const rect = canvas.getBoundingClientRect(); // Dimensions del canvas
+
+    // Calculem la posició relativa dins el canvas
+    const relativeX = touchX - rect.left;
+
+    // Si el toc és dins el canvas, mou la pala
+    if (relativeX > 0 && relativeX < canvas.width) {
+        paddleX = relativeX - paddleWidth / 2; // Centrem la pala on es toca
+    }
+
+    // Evitem que es faci scroll al mòbil mentre jugues
+    event.preventDefault();
+    }
+
     // Per inicialitzar dos events, quan l'usuari presiona la tecla i quan l'usuari deixi anar la tecla
     function initEvents () {
         // Dos events per escoltar quan ho fa l'usuari, simplement escoltem per a un altre lloc dibuixar què volem que passi
         // quan s'escoltin aquests events
         document.addEventListener('keydown', keyDownHandler);
         document.addEventListener('keyup', keyUpHandler);
+
+        // Esdeveniment per a dispositius tàctils
+        document.addEventListener('touchmove', handleTouchMove);
 
         function keyDownHandler(event) {
             const { key } = event
