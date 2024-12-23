@@ -1,4 +1,6 @@
+<html>
 <title>Arkanoid en Javascript</title>
+<head>
 <style>
     body {
         background-color: black;
@@ -35,6 +37,9 @@
     }
 
 </style>
+</head>
+
+<body>
 <canvas></canvas>
 
 <script>
@@ -52,7 +57,6 @@
     let counter = 0;
 
     // VARIABLES DE LA PILOTA
-
     // Tamany que després multipliquem
     const ballRadius = 4;
     // La seva posició, posem let al valor perquè s'estarà modificant, la pilota s'anirà movent
@@ -66,9 +70,7 @@
     // VARIABLES DE LA PALETA o barra que mou l'usuari
     // Quant ocupa d'alt i d'amplada i la posició que l'usuari actualitza ja que en té control. Fem que aparegui al centre.
     const paddleHeight = 10;
-    const paddleWidth = 50;
-
-
+    const paddleWidth = 90;
     let paddleX = (canvas.width - paddleWidth) / 2;
     let paddleY = canvas.height - paddleHeight - 10; // -10 perquè la paleta no quedi a sota de tot
 
@@ -174,21 +176,27 @@
 }
 
     function collisionDetection() {
+        // Recorrem totes les columnes de peces
         for (let c = 0; c < brickColumnCount; c++) {
+            // Recorrem totes les files de peces
             for (let r = 0; r < brickRowCount; r++) {
+                // La peça actual que estem treballant
                 const currentBrick = bricks[c][r]
+                // Si la peça ja està destruida, passem a la següent (continuem la iteració)
                 if (currentBrick.status == BRICK_STATUS.DESTROYED) continue;
-
+                //// Comprovem si la pilota està en la mateixa posició horitzontal que la peça
                 const isBallSameXAsBrick =
-                x > currentBrick.x &&
-                x < currentBrick.x + brickWidth
-
+                x > currentBrick.x && //// El costat esquerre de la pilota està a la dreta de la peça
+                x < currentBrick.x + brickWidth // El costat dret de la pilota està a l'esquerra de la peça
+                // Comprovem si la pilota està en la mateixa posició vertical que la peça
                 const isBallSameYAsBrick =
-                y > currentBrick.y &&
-                y < currentBrick.y + brickHeight
-
+                y > currentBrick.y && // La part superior de la pilota està per sota de la peça
+                y < currentBrick.y + brickHeight // La part inferior de la pilota està per sobre de la peça
+                // Si la pilota xoca tant en l'eix X com en l'eix Y amb la peça
                 if (isBallSameXAsBrick && isBallSameYAsBrick) {
+                    // Invertim la direcció vertical de la pilota
                     dy = -dy
+                // Marquem la peça com a destruida
                 currentBrick.status = BRICK_STATUS.DESTROYED
 
             }
@@ -217,7 +225,7 @@
         }
 
         // La pilota toca la pala: si toca la pala, ha de canviar la direcció de la pilota
-        const isBallSameXAsPaddle = // si la pilota està a la mateixa coordenada que la pala
+        const isBallSameXAsPaddle = // Si la pilota està a la mateixa coordenada que la pala
         // Si la pilota és més gran a paddle x + la llargada del paddle, estem mirant si la pilota està dins la superficíe de sobre de la paleta
         // aquí seria true en aquest espai i fora d'aquest espai false
             x > paddleX &&
@@ -231,6 +239,7 @@
         if (!isGameOver) { // Només executar una vegada
             console.log('Game Over');
             isGameOver = true; // Canvia l'estat del joc a "acabat"
+            alert("GAME OVER :(");
             document.location.reload();
         }
         } else if (isBallSameXAsPaddle && isBallTouchingPaddle) {
@@ -272,7 +281,7 @@
         paddleX = relativeX - paddleWidth / 2; // Centrem la pala on es toca
     }
 
-    // Evitem que es faci scroll al mòbil mentre jugues
+    // Evitem que es faci scroll al mòbil mentre es juga
     event.preventDefault();
     }
 
@@ -283,7 +292,7 @@
         document.addEventListener('keydown', keyDownHandler);
         document.addEventListener('keyup', keyUpHandler);
 
-        // Esdeveniment per a dispositius tàctils
+        // Esdeveniment per dispositius tàctils
         document.addEventListener('touchmove', handleTouchMove);
 
         function keyDownHandler(event) {
@@ -345,3 +354,5 @@
     initEvents();
 
 </script>
+</body>
+</html>
