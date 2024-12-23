@@ -2,6 +2,8 @@
 
 This is a classic Brick Breaker game developed in JavaScript, utilizing the <canvas> element for rendering. The game is simple but engaging: destroy all the bricks by bouncing a ball off a paddle, avoiding missing the ball to keep the game going.
 
+Live demo: https://polmuri.github.io/Arkanoid-Game/
+
 ## Features
 
 -Brick destruction: Break bricks by hitting them with the ball.
