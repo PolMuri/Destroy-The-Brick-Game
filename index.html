@@ -2,6 +2,11 @@
 <style>
     body {
         background-color: black;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
     }
 
     canvas {
@@ -11,6 +16,24 @@
         margin: auto;
         display: block;
     }
+
+     /* Estil per pantalles grans (ordinadors) */
+     @media (min-width: 768px) {
+        canvas {
+            width: 600px; 
+            height: 800px; 
+        }
+    }
+
+    /* Estil per pantalles petites (mòbils) */
+    @media (max-width: 767px) {
+        canvas {
+            width: 100%;
+            height: auto;
+            max-height: 90vh;
+        }
+    }
+
 </style>
 <canvas></canvas>
 
@@ -21,7 +44,7 @@
     const ctx = canvas.getContext('2d');
 
 
-    // Li hem de dir el tamany del canvas
+    // Li hem de dir el tamany del canvas, és l'amplada i l'alçada de les peces que hem de destruir
     canvas.width = 448;
     canvas.height = 400;
 
@@ -31,7 +54,7 @@
     // VARIABLES DE LA PILOTA
 
     // Tamany que després multipliquem
-    const ballRadius = 3;
+    const ballRadius = 4;
     // La seva posició, posem let al valor perquè s'estarà modificant, la pilota s'anirà movent
     let x = canvas.width / 2;
     let y = canvas.height - 30;
@@ -64,7 +87,7 @@
     const brickOffsetLeft = 16;
     // Array amb totes les peces
     const bricks = [];
-    const brickColors = ['#FF5733', '#33FF57', '#3357FF', '#FFD700', '#8A2BE2']; // Colors possibles per cada una de les peces
+    const brickColors = ['#	AFEEEE', '#FFFF00', '#C0FF00', '#0000FF', '#B22222', '#FFEFD5', '#9932CC', '#708090']; // Colors possibles per cada una de les peces
 
     const BRICK_STATUS = {
         ACTIVE: 1,
