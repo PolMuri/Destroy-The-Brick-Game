@@ -223,7 +223,7 @@
         // Aquesta verificació es fa al final de la funció collisionDetection.
         // Si es compleix la condició de victòria,mostrem un missatge d'alerta i es reinicia el joc amb document.location.reload().
         if (checkWinCondition()) {
-        alert("YOU WON! Refresh the page to continue playing 🎉");
+        alert('YOU WON!🎉 Refresh the page to continue playing');
         document.location.reload(); // Reiniciar el joc
      }
     }
@@ -263,7 +263,7 @@
         if (!isGameOver) { // Només executar una vegada
             console.log('Game Over');
             isGameOver = true; // Canvia l'estat del joc a "acabat"
-            alert("GAME OVER :(");
+            alert('GAME OVER :(');
             document.location.reload();
         }
         } else if (isBallSameXAsPaddle && isBallTouchingPaddle) {
