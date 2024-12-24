@@ -25,6 +25,8 @@
         canvas {
             width: 600px; 
             height: 800px; 
+            touch-action: none; /* Evita que el navegador faci scrolling per defecte */
+            user-select: none;  /* Evita selecció de text o comportaments no desitjats */
         }
     }
 
@@ -34,6 +36,8 @@
             width: 100%;
             height: auto;
             max-height: 90vh;
+            touch-action: none; /* Evita que el navegador faci scrolling per defecte */
+            user-select: none;  /* Evita selecció de text o comportaments no desitjats */
         }
     }
 
@@ -64,9 +68,9 @@
     let x = canvas.width / 2;
     let y = canvas.height - 30;
     // Velocitat de la pilota tant horitzontal com vertical
-    let dx = -3;
+    let dx = -2.5;
     // Negatiu va cap amunt positiu va cap abaix la pilota
-    let dy = -3;
+    let dy = -2.5;
 
     // VARIABLES DE LA PALETA o barra que mou l'usuari
     // Quant ocupa d'alt i d'amplada i la posició que l'usuari actualitza ja que en té control. Fem que aparegui al centre.
@@ -140,7 +144,7 @@
 
     // Dibuixar la paleta
     function drawPaddle() {
-        ctx.fillStyle = '#09f';
+        ctx.fillStyle = '#a9cce3';
         // La posició 
         ctx.fillRect(
             paddleX, // Coordenada X
@@ -293,8 +297,9 @@
         document.addEventListener('keydown', keyDownHandler);
         document.addEventListener('keyup', keyUpHandler);
 
-        // Esdeveniment per dispositius tàctils
-        document.addEventListener('touchmove', handleTouchMove);
+        // Esdeveniments per dispositius tàctils
+        document.addEventListener('touchstart', handleTouchMove, { passive: false });
+        document.addEventListener('touchmove', handleTouchMove, { passive: false });
 
         function keyDownHandler(event) {
             const { key } = event
@@ -317,6 +322,36 @@
                 leftPressed = false;
             }
         }
+
+        function handleTouchMove(event) {
+        // Evitem el comportament predeterminat (com el desplaçament de la pàgina)
+        event.preventDefault();
+
+        // Agafem la primera posició tàctil
+        const touch = event.touches[0];
+
+        // Coordenades del toc
+        const touchX = touch.clientX;
+        const touchY = touch.clientY;
+
+        // Obtenim les coordenades relatives al canvas
+        const canvasRect = canvas.getBoundingClientRect();
+        const canvasX = touchX - canvasRect.left;
+        const canvasY = touchY - canvasRect.top;
+
+        // Verifiquem si el toc és dins la zona sota del paddle
+        if (canvasY > canvas.height - 50) {
+            // Ajustem la posició del paddle segons la posició X del dit
+            paddleX = canvasX - paddleWidth / 2;
+
+            // Limitem el paddle perquè no surti dels marges del canvas
+            if (paddleX < 0) {
+                paddleX = 0;
+            } else if (paddleX + paddleWidth > canvas.width) {
+                paddleX = canvas.width - paddleWidth;
+            }
+        }
+    }
 
     }
 
