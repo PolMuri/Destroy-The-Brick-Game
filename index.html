@@ -1,413 +1,418 @@
 <html>
 <title>Arkanoid en Javascript</title>
+
 <head>
-<link rel="icon" type="image/png" href="images/arkanoid.png">
-<style>
-    body {
-        background-color: black;
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
-
-    canvas {
-        border: 4px solid #fff;
-        border-bottom: transparent;
-        background: #000;
-        margin: auto;
-        display: block;
-    }
-
-     /* Estil per pantalles grans (ordinadors) */
-     @media (min-width: 768px) {
-        canvas {
-            width: 600px; 
-            height: 800px; 
-            touch-action: none; /* Evita que el navegador faci scrolling per defecte */
-            user-select: none;  /* Evita selecció de text o comportaments no desitjats */
+    <link rel="icon" type="image/png" href="images/arkanoid.png">
+    <style>
+        body {
+            background-color: black;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-    }
 
-    /* Estil per pantalles petites (mòbils) */
-    @media (max-width: 767px) {
         canvas {
-            width: 100%;
-            height: auto;
-            max-height: 90vh;
-            touch-action: none; /* Evita que el navegador faci scrolling per defecte */
-            user-select: none;  /* Evita selecció de text o comportaments no desitjats */
+            border: 4px solid #fff;
+            border-bottom: transparent;
+            background: #000;
+            margin: auto;
+            display: block;
         }
-    }
 
-</style>
+        /* Estil per pantalles grans (ordinadors) */
+        @media (min-width: 768px) {
+            canvas {
+                width: 600px;
+                height: 800px;
+                touch-action: none;
+                /* Evita que el navegador faci scrolling per defecte */
+                user-select: none;
+                /* Evita selecció de text o comportaments no desitjats */
+            }
+        }
+
+        /* Estil per pantalles petites (mòbils) */
+        @media (max-width: 767px) {
+            canvas {
+                width: 100%;
+                height: auto;
+                max-height: 90vh;
+                touch-action: none;
+                /* Evita que el navegador faci scrolling per defecte */
+                user-select: none;
+                /* Evita selecció de text o comportaments no desitjats */
+            }
+        }
+    </style>
 </head>
 
 <body>
-<canvas></canvas>
+    <canvas></canvas>
 
-<script>
-    // Primer de tot recuperem l'etiqueta canvas
-    const canvas = document.querySelector('canvas');
-    // Li diem al canvas com dibuixarem, per exemple podria ser 3d també
-    const ctx = canvas.getContext('2d');
+    <script>
+        // Primer de tot recuperem l'etiqueta canvas
+        const canvas = document.querySelector('canvas');
+        // Li diem al canvas com dibuixarem, per exemple podria ser 3d també
+        const ctx = canvas.getContext('2d');
 
 
-    // Li hem de dir el tamany del canvas, és l'amplada i l'alçada de les peces que hem de destruir
-    canvas.width = 448;
-    canvas.height = 400;
+        // Li hem de dir el tamany del canvas, és l'amplada i l'alçada de les peces que hem de destruir
+        canvas.width = 448;
+        canvas.height = 400;
 
-    // Variables del joc
-    let counter = 0;
+        // Variables del joc
+        let counter = 0;
 
-    // VARIABLES DE LA PILOTA
-    // Tamany que després multipliquem
-    const ballRadius = 4;
-    // La seva posició, posem let al valor perquè s'estarà modificant, la pilota s'anirà movent
-    let x = canvas.width / 2;
-    let y = canvas.height - 30;
-    // Velocitat de la pilota tant horitzontal com vertical
-    let dx = -2.5;
-    // Negatiu va cap amunt positiu va cap abaix la pilota
-    let dy = -2.5;
+        // VARIABLES DE LA PILOTA
+        // Tamany que després multipliquem
+        const ballRadius = 4;
+        // La seva posició, posem let al valor perquè s'estarà modificant, la pilota s'anirà movent
+        let x = canvas.width / 2;
+        let y = canvas.height - 30;
+        // Velocitat de la pilota tant horitzontal com vertical
+        let dx = -2.5;
+        // Negatiu va cap amunt positiu va cap abaix la pilota
+        let dy = -2.5;
 
-    // VARIABLES DE LA PALETA o barra que mou l'usuari
-    // Quant ocupa d'alt i d'amplada i la posició que l'usuari actualitza ja que en té control. Fem que aparegui al centre.
-    const paddleHeight = 10;
-    const paddleWidth = 90;
-    let paddleX = (canvas.width - paddleWidth) / 2;
-    let paddleY = canvas.height - paddleHeight - 10; // -10 perquè la paleta no quedi a sota de tot
+        // VARIABLES DE LA PALETA o barra que mou l'usuari
+        // Quant ocupa d'alt i d'amplada i la posició que l'usuari actualitza ja que en té control. Fem que aparegui al centre.
+        const paddleHeight = 10;
+        const paddleWidth = 90;
+        let paddleX = (canvas.width - paddleWidth) / 2;
+        let paddleY = canvas.height - paddleHeight - 10; // -10 perquè la paleta no quedi a sota de tot
 
-    // Dos flags que ens diuen si la tecla està apretada o no
-    let rightPressed = false;
-    let leftPressed = false;
+        // Dos flags que ens diuen si la tecla està apretada o no
+        let rightPressed = false;
+        let leftPressed = false;
 
-    // VARIABLES DE LES PECES
-    // Quantes files i columnes, l'amplada de les peces i l'alçada i separació entre les peces i a on comencen
-    const brickRowCount = 6;
-    const brickColumnCount = 13;
-    const brickWidth = 32;
-    const brickHeight = 16;
-    const brickPadding = 0;
-    const brickOffsetTop = 80;
-    const brickOffsetLeft = 16;
-    // Array amb totes les peces
-    const bricks = [];
-    const brickColors = ['#FA8359', '#F4FB59', '#ADFB58', '#A8E2F2', '#D0A8F4', '#F6819E', '#fb9f2f', '#BDBCBC']; // Colors possibles per cada una de les peces
+        // VARIABLES DE LES PECES
+        // Quantes files i columnes, l'amplada de les peces i l'alçada i separació entre les peces i a on comencen
+        const brickRowCount = 6;
+        const brickColumnCount = 13;
+        const brickWidth = 32;
+        const brickHeight = 16;
+        const brickPadding = 0;
+        const brickOffsetTop = 80;
+        const brickOffsetLeft = 16;
+        // Array amb totes les peces
+        const bricks = [];
+        const brickColors = ['#FA8359', '#F4FB59', '#ADFB58', '#A8E2F2', '#D0A8F4', '#F6819E', '#fb9f2f', '#BDBCBC']; // Colors possibles per cada una de les peces
 
-    const BRICK_STATUS = {
-        ACTIVE: 1,
-        DESTROYED: 0
-    }
-
-    // Inicialitzem les peces. Tindrem files i columnes per tant és una matriu. c = columns, r = rows.
-    for (let c = 0; c < brickColumnCount; c++) {
-    bricks[c] = []  // Inicialitzem dins al columna amb un array buit.
-    for (let r = 0; r < brickRowCount; r++) {
-        // Calculem la posició de la peça a la pantalla
-        // Multipliquem el que ocupa cada peça + l'espai que deixa amb la següent + l'espai de marge que deixem a l'inici
-        const brickX = c * (brickWidth + brickPadding) + 
-        brickOffsetLeft // el marge només es suma una vegada
-        const brickY = r * (brickHeight + brickPadding) + 
-        brickOffsetTop 
-        // Posem un color aleatori a cada peça
-        const random = Math.floor(Math.random() * 8) // Al fer el Math.floor ens apareixeran els números de l'1 al 7
-        // Guardem la informació de cada peça, i tindrem un objecte amb la posició de cada peça
-        bricks[c][r] = { 
-            x: brickX, 
-            y: brickY, 
-            status: BRICK_STATUS.ACTIVE, 
-            color: brickColors[Math.floor(Math.random() * brickColors.length)], // Assignem un color aleatori a cada peça
-
+        const BRICK_STATUS = {
+            ACTIVE: 1,
+            DESTROYED: 0
         }
-      }
-    }
 
-    const PADDLE_SENSIBILITY = 10; // La sensibilitat de el paddle o paleta
-
-
-    function drawBall() {
-        // El primer serà indicar que comencem a dibuixar, un camí
-        ctx.beginPath() // Començar el traçat
-        // Dibuixem un arc, les coordenades d'on volem que es dibuixi, i li hem de dir el radi de la pilota i els angles
-        // d'inici i de final del cercle, *2 és un cercle complert, una rodona
-        ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
-        // El color
-        ctx.fillStyle = '#fff';
-        ctx.fill();
-        // Tanquem el traçat per temes de rendiment, ja que pot evitar que es barrejin traçats, etc.
-        ctx.closePath(); // Finalitzar el traçat
-
-
-    }
-
-    // Dibuixar la paleta
-    function drawPaddle() {
-        ctx.fillStyle = '#2f62fb';
-        // La posició 
-        ctx.fillRect(
-            paddleX, // Coordenada X
-            paddleY, // Coordenada Y
-            paddleWidth, // L'amplada de la paleta
-            paddleHeight, // L'alçada de la paleta
-        )
-
-    }
-
-    // Pintar les peces
-    function drawBricks()  {
-    // Per dibuixar cada una de les peces, recuperem el brick actual
-    for (let c = 0; c < brickColumnCount; c++) {
-        for (let r = 0; r < brickRowCount; r++) {
-            const currentBrick = bricks[c][r];
-            // Si la peça és destruida, no segueixis amb aquesta iteració i ves a la següent
-            if (currentBrick.status == BRICK_STATUS.DESTROYED) continue;
-
-            ctx.beginPath(); // Important per evitar que es sobreescriguin altres formes
-            ctx.rect(
-                currentBrick.x,
-                currentBrick.y,
-                brickWidth,
-                brickHeight
-            );
-            ctx.fillStyle = currentBrick.color || 'yellow'; // Usa el color del bloc, o groc per defecte
-            ctx.strokeStyle = 'black'; // Color de la cantonada
-            ctx.stroke(); // Perquè tinguin cantonada
-            ctx.fill(); // Omplir el rectangle amb el color
-            ctx.closePath(); // Tancar el camí actual
-        }
-    }
-    }
-
-    // Funció per comprovar si totes les peces han estat destruïdes, aquesta funció recorre totes les peces (bricks) i comprova si alguna encara està activa.
-    // Si totes les peces estan destruïdes, retorna true.
-    function checkWinCondition() {
+        // Inicialitzem les peces. Tindrem files i columnes per tant és una matriu. c = columns, r = rows.
         for (let c = 0; c < brickColumnCount; c++) {
+            bricks[c] = []  // Inicialitzem dins al columna amb un array buit.
             for (let r = 0; r < brickRowCount; r++) {
-                if (bricks[c][r].status === BRICK_STATUS.ACTIVE) {
-                    return false; // Encara hi ha peces actives
+                // Calculem la posició de la peça a la pantalla
+                // Multipliquem el que ocupa cada peça + l'espai que deixa amb la següent + l'espai de marge que deixem a l'inici
+                const brickX = c * (brickWidth + brickPadding) +
+                    brickOffsetLeft // el marge només es suma una vegada
+                const brickY = r * (brickHeight + brickPadding) +
+                    brickOffsetTop
+                // Posem un color aleatori a cada peça
+                const random = Math.floor(Math.random() * 8) // Al fer el Math.floor ens apareixeran els números de l'1 al 7
+                // Guardem la informació de cada peça, i tindrem un objecte amb la posició de cada peça
+                bricks[c][r] = {
+                    x: brickX,
+                    y: brickY,
+                    status: BRICK_STATUS.ACTIVE,
+                    color: brickColors[Math.floor(Math.random() * brickColors.length)], // Assignem un color aleatori a cada peça
+
                 }
             }
         }
-        return true; // Totes les peces han estat destruïdes
-    }
 
-    function collisionDetection() {
-        // Recorrem totes les columnes de peces
-        for (let c = 0; c < brickColumnCount; c++) {
-            // Recorrem totes les files de peces
-            for (let r = 0; r < brickRowCount; r++) {
-                // La peça actual que estem treballant
-                const currentBrick = bricks[c][r]
-                // Si la peça ja està destruida, passem a la següent (continuem la iteració)
-                if (currentBrick.status == BRICK_STATUS.DESTROYED) continue;
-                //// Comprovem si la pilota està en la mateixa posició horitzontal que la peça
-                const isBallSameXAsBrick =
-                x > currentBrick.x && //// El costat esquerre de la pilota està a la dreta de la peça
-                x < currentBrick.x + brickWidth // El costat dret de la pilota està a l'esquerra de la peça
-                // Comprovem si la pilota està en la mateixa posició vertical que la peça
-                const isBallSameYAsBrick =
-                y > currentBrick.y && // La part superior de la pilota està per sota de la peça
-                y < currentBrick.y + brickHeight // La part inferior de la pilota està per sobre de la peça
-                // Si la pilota xoca tant en l'eix X com en l'eix Y amb la peça
-                if (isBallSameXAsBrick && isBallSameYAsBrick) {
-                    // Invertim la direcció vertical de la pilota
-                    dy = -dy
-                // Marquem la peça com a destruida
-                currentBrick.status = BRICK_STATUS.DESTROYED
+        const PADDLE_SENSIBILITY = 10; // La sensibilitat de el paddle o paleta
 
+
+        function drawBall() {
+            // El primer serà indicar que comencem a dibuixar, un camí
+            ctx.beginPath() // Començar el traçat
+            // Dibuixem un arc, les coordenades d'on volem que es dibuixi, i li hem de dir el radi de la pilota i els angles
+            // d'inici i de final del cercle, *2 és un cercle complert, una rodona
+            ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+            // El color
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            // Tanquem el traçat per temes de rendiment, ja que pot evitar que es barrejin traçats, etc.
+            ctx.closePath(); // Finalitzar el traçat
+
+
+        }
+
+        // Dibuixar la paleta
+        function drawPaddle() {
+            ctx.fillStyle = '#2f62fb';
+            // La posició 
+            ctx.fillRect(
+                paddleX, // Coordenada X
+                paddleY, // Coordenada Y
+                paddleWidth, // L'amplada de la paleta
+                paddleHeight, // L'alçada de la paleta
+            )
+
+        }
+
+        // Pintar les peces
+        function drawBricks() {
+            // Per dibuixar cada una de les peces, recuperem el brick actual
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    const currentBrick = bricks[c][r];
+                    // Si la peça és destruida, no segueixis amb aquesta iteració i ves a la següent
+                    if (currentBrick.status == BRICK_STATUS.DESTROYED) continue;
+
+                    ctx.beginPath(); // Important per evitar que es sobreescriguin altres formes
+                    ctx.rect(
+                        currentBrick.x,
+                        currentBrick.y,
+                        brickWidth,
+                        brickHeight
+                    );
+                    ctx.fillStyle = currentBrick.color || 'yellow'; // Usa el color del bloc, o groc per defecte
+                    ctx.strokeStyle = 'black'; // Color de la cantonada
+                    ctx.stroke(); // Perquè tinguin cantonada
+                    ctx.fill(); // Omplir el rectangle amb el color
+                    ctx.closePath(); // Tancar el camí actual
+                }
             }
         }
+
+        // Funció per comprovar si totes les peces han estat destruïdes, aquesta funció recorre totes les peces (bricks) i comprova si alguna encara està activa.
+        // Si totes les peces estan destruïdes, retorna true.
+        function checkWinCondition() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status === BRICK_STATUS.ACTIVE) {
+                        return false; // Encara hi ha peces actives
+                    }
+                }
+            }
+            return true; // Totes les peces han estat destruïdes
         }
-        // Aquesta verificació es fa al final de la funció collisionDetection.
-        // Si es compleix la condició de victòria,mostrem un missatge d'alerta i es reinicia el joc amb document.location.reload().
-        if (checkWinCondition()) {
-        alert('YOU WON!🎉 Refresh the page to continue playing');
-        document.location.reload(); // Reiniciar el joc
-     }
-    }
 
-    let isGameOver = false; // Variable global per controlar l'estat del joc
+        function collisionDetection() {
+            // Recorrem totes les columnes de peces
+            for (let c = 0; c < brickColumnCount; c++) {
+                // Recorrem totes les files de peces
+                for (let r = 0; r < brickRowCount; r++) {
+                    // La peça actual que estem treballant
+                    const currentBrick = bricks[c][r]
+                    // Si la peça ja està destruida, passem a la següent (continuem la iteració)
+                    if (currentBrick.status == BRICK_STATUS.DESTROYED) continue;
+                    //// Comprovem si la pilota està en la mateixa posició horitzontal que la peça
+                    const isBallSameXAsBrick =
+                        x > currentBrick.x && //// El costat esquerre de la pilota està a la dreta de la peça
+                        x < currentBrick.x + brickWidth // El costat dret de la pilota està a l'esquerra de la peça
+                    // Comprovem si la pilota està en la mateixa posició vertical que la peça
+                    const isBallSameYAsBrick =
+                        y > currentBrick.y && // La part superior de la pilota està per sota de la peça
+                        y < currentBrick.y + brickHeight // La part inferior de la pilota està per sobre de la peça
+                    // Si la pilota xoca tant en l'eix X com en l'eix Y amb la peça
+                    if (isBallSameXAsBrick && isBallSameYAsBrick) {
+                        // Invertim la direcció vertical de la pilota
+                        dy = -dy
+                        // Marquem la peça com a destruida
+                        currentBrick.status = BRICK_STATUS.DESTROYED
 
-    function ballMovement() {
-        if (isGameOver) return; // Evitar més moviments si és Game Over
-        // Rebotar la pilota al lateral quan hi arribi. Si la pilota xoca a un lateral, ah de canviar la seva direcció, 
+                    }
+                }
+            }
+            // Aquesta verificació es fa al final de la funció collisionDetection.
+            // Si es compleix la condició de victòria,mostrem un missatge d'alerta i es reinicia el joc amb document.location.reload().
+            if (checkWinCondition()) {
+                alert('YOU WON!🎉 Refresh the page to continue playing');
+                document.location.reload(); // Reiniciar el joc
+            }
+        }
+
+        let isGameOver = false; // Variable global per controlar l'estat del joc
+
+        function ballMovement() {
+            if (isGameOver) return; // Evitar més moviments si és Game Over
+            // Rebotar la pilota al lateral quan hi arribi. Si la pilota xoca a un lateral, ah de canviar la seva direcció, 
             // si era positiu passarà a negatiu i el mateix però a la inversa
-        if (
-            // La posicío de la pilota és la x sumant la direcció de la pilota, si és més gran que 
-            // el final del canvas menys el radi de la pilota. Ho fem per l'esquerra i per la dreta
-            x + dx > canvas.width - ballRadius|| // la paret dreta
-            x +dx < ballRadius // la paret esquerra
-        ) {
-            dx = -dx;
+            if (
+                // La posicío de la pilota és la x sumant la direcció de la pilota, si és més gran que 
+                // el final del canvas menys el radi de la pilota. Ho fem per l'esquerra i per la dreta
+                x + dx > canvas.width - ballRadius || // la paret dreta
+                x + dx < ballRadius // la paret esquerra
+            ) {
+                dx = -dx;
+            }
+
+            // Rebotar la pilota a la part de dalt (ja que a baix es mor el jugador)
+            if (y + dy < ballRadius) {
+                dy = -dy;
+            }
+
+            // La pilota toca la pala: si toca la pala, ha de canviar la direcció de la pilota
+            const isBallSameXAsPaddle = // Si la pilota està a la mateixa coordenada que la pala
+                // Si la pilota és més gran a paddle x + la llargada del paddle, estem mirant si la pilota està dins la superficíe de sobre de la paleta
+                // aquí seria true en aquest espai i fora d'aquest espai false
+                x > paddleX &&
+                x < paddleX + paddleWidth;
+
+            const isBallTouchingPaddle = // Per saber-ho, com que sabem la posicio de la pilota i la seva direcció ho podem saber
+                y + dy >= paddleY &&
+                y + dy <= paddleY + ballRadius; // Per casos on la pilota es mogui massa ràpidament i "salti" el punt exacte del contacte amb la paleta.
+
+            if (y + dy > canvas.height - ballRadius) {
+                if (!isGameOver) { // Només executar una vegada
+                    console.log('Game Over');
+                    isGameOver = true; // Canvia l'estat del joc a "acabat"
+                    alert('GAME OVER :(');
+                    document.location.reload();
+                }
+            } else if (isBallSameXAsPaddle && isBallTouchingPaddle) {
+                dy = -dy; // Rebot amb el paddle
+            }
+
+            // A cada frame està dibuixant la pilota, és a dir, es mou la pilota, en una posició diferent però sense borrar el dibuix anterior
+            // deixant així un rastre que solucionarem borrant la pantalla després de cada frame a la funció draw
+            x += dx;
+            y += dy;
         }
 
-        // Rebotar la pilota a la part de dalt (ja que a baix es mor el jugador)
-        if (y +dy < ballRadius) {
-            dy = -dy;
-        }
-
-        // La pilota toca la pala: si toca la pala, ha de canviar la direcció de la pilota
-        const isBallSameXAsPaddle = // Si la pilota està a la mateixa coordenada que la pala
-        // Si la pilota és més gran a paddle x + la llargada del paddle, estem mirant si la pilota està dins la superficíe de sobre de la paleta
-        // aquí seria true en aquest espai i fora d'aquest espai false
-            x > paddleX &&
-            x < paddleX + paddleWidth;
-
-        const isBallTouchingPaddle = // Per saber-ho, com que sabem la posicio de la pilota i la seva direcció ho podem saber
-            y + dy >= paddleY &&
-            y + dy <= paddleY + ballRadius; // Per casos on la pilota es mogui massa ràpidament i "salti" el punt exacte del contacte amb la paleta.
-
-        if (y + dy > canvas.height - ballRadius) {
-        if (!isGameOver) { // Només executar una vegada
-            console.log('Game Over');
-            isGameOver = true; // Canvia l'estat del joc a "acabat"
-            alert('GAME OVER :(');
-            document.location.reload();
-        }
-        } else if (isBallSameXAsPaddle && isBallTouchingPaddle) {
-        dy = -dy; // Rebot amb el paddle
-        }
-
-        // A cada frame està dibuixant la pilota, és a dir, es mou la pilota, en una posició diferent però sense borrar el dibuix anterior
-        // deixant així un rastre que solucionarem borrant la pantalla després de cada frame a la funció draw
-        x += dx;
-        y += dy;
-        }
-
-    // Funció per moure la paleta
-    function paddleMovement() {
-        // Si apretem a la dreta es mou a la dreta si apretem a l'esquerra es mou a l'esquerra, senzill
-        // És la sensibilitat i els marges perquè no es surti de la "pantalla"
-        if (rightPressed && paddleX < canvas.width - paddleWidth) {
-            paddleX += PADDLE_SENSIBILITY;
-        } else if (leftPressed && paddleX > 0) {
-            paddleX -= PADDLE_SENSIBILITY;
-        }
-    }
-    
-    // Per esborrar la pantalla després de cada frame i que no quedi el traçat de la pilota dibuixat
-    function cleanCanvas() {
-        // Natejem els dibuixos que hi havia en tot el canvas, des de la posició 0 de la x i la y a tot el width i height del canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function handleTouchMove(event) {
-    const touchX = event.touches[0].clientX; // Agafem la posició X del primer toc
-    const rect = canvas.getBoundingClientRect(); // Dimensions del canvas
-
-    // Calculem la posició relativa dins el canvas
-    const relativeX = touchX - rect.left;
-
-    // Si el toc és dins el canvas, mou la pala
-    if (relativeX > 0 && relativeX < canvas.width) {
-        paddleX = relativeX - paddleWidth / 2; // Centrem la pala on es toca
-    }
-
-    // Evitem que es faci scroll al mòbil mentre es juga
-    event.preventDefault();
-    }
-
-    // Per inicialitzar dos events, quan l'usuari presiona la tecla i quan l'usuari deixi anar la tecla
-    function initEvents () {
-        // Dos events per escoltar quan ho fa l'usuari, simplement escoltem per a un altre lloc dibuixar què volem que passi
-        // quan s'escoltin aquests events
-        document.addEventListener('keydown', keyDownHandler);
-        document.addEventListener('keyup', keyUpHandler);
-
-        // Esdeveniments per dispositius tàctils
-        document.addEventListener('touchstart', handleTouchMove, { passive: false });
-        document.addEventListener('touchmove', handleTouchMove, { passive: false });
-
-        function keyDownHandler(event) {
-            const { key } = event
-            // Saber la tecla que apreta l'usuari i ens assegurem que només entri una de les dues condicions, esquerra o dreta
-            // per si l'usuari té la brillant idea d'apretar les dues tecles a la vegada
-            if ( key == 'Right' || key == 'ArrowRight') {
-                rightPressed = true;
-            } else if ( key == 'Left' || key == 'ArrowLeft') {
-                leftPressed = true;
+        // Funció per moure la paleta
+        function paddleMovement() {
+            // Si apretem a la dreta es mou a la dreta si apretem a l'esquerra es mou a l'esquerra, senzill
+            // És la sensibilitat i els marges perquè no es surti de la "pantalla"
+            if (rightPressed && paddleX < canvas.width - paddleWidth) {
+                paddleX += PADDLE_SENSIBILITY;
+            } else if (leftPressed && paddleX > 0) {
+                paddleX -= PADDLE_SENSIBILITY;
             }
         }
 
-        function keyUpHandler(event) {
-            const { key } = event
-            // Saber la tecla que apreta l'usuari i ens assegurem que només entri una de les dues condicions, a dalt o a baix
-            // per si l'usuari té la brillant idea d'apretar les dues tecles a la vegada
-            if ( key == 'Right' || key == 'ArrowRight') {
-                rightPressed = false;
-            } else if ( key == 'Left' || key == 'ArrowLeft') {
-                leftPressed = false;
-            }
+        // Per esborrar la pantalla després de cada frame i que no quedi el traçat de la pilota dibuixat
+        function cleanCanvas() {
+            // Natejem els dibuixos que hi havia en tot el canvas, des de la posició 0 de la x i la y a tot el width i height del canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         function handleTouchMove(event) {
-        // Evitem el comportament predeterminat (com el desplaçament de la pàgina)
-        event.preventDefault();
+            const touchX = event.touches[0].clientX; // Agafem la posició X del primer toc
+            const rect = canvas.getBoundingClientRect(); // Dimensions del canvas
 
-        // Agafem la primera posició tàctil
-        const touch = event.touches[0];
+            // Calculem la posició relativa dins el canvas
+            const relativeX = touchX - rect.left;
 
-        // Coordenades del toc
-        const touchX = touch.clientX;
-        const touchY = touch.clientY;
-
-        // Obtenim les coordenades relatives al canvas
-        const canvasRect = canvas.getBoundingClientRect();
-        const canvasX = touchX - canvasRect.left;
-        const canvasY = touchY - canvasRect.top;
-
-        // Verifiquem si el toc és dins la zona sota del paddle
-        if (canvasY > canvas.height - 50) {
-            // Ajustem la posició del paddle segons la posició X del dit
-            paddleX = canvasX - paddleWidth / 2;
-
-            // Limitem el paddle perquè no surti dels marges del canvas
-            if (paddleX < 0) {
-                paddleX = 0;
-            } else if (paddleX + paddleWidth > canvas.width) {
-                paddleX = canvas.width - paddleWidth;
+            // Si el toc és dins el canvas, mou la pala
+            if (relativeX > 0 && relativeX < canvas.width) {
+                paddleX = relativeX - paddleWidth / 2; // Centrem la pala on es toca
             }
+
+            // Evitem que es faci scroll al mòbil mentre es juga
+            event.preventDefault();
         }
-    }
 
-    }
+        // Per inicialitzar dos events, quan l'usuari presiona la tecla i quan l'usuari deixi anar la tecla
+        function initEvents() {
+            // Dos events per escoltar quan ho fa l'usuari, simplement escoltem per a un altre lloc dibuixar què volem que passi
+            // quan s'escoltin aquests events
+            document.addEventListener('keydown', keyDownHandler);
+            document.addEventListener('keyup', keyUpHandler);
 
-    // Es crida la funció a cada frame i constantment estarà dibuixant els elements de la pantalla
-    // depenent de com estiguin les variables en aquell moment depenent de si l'usuari ha mogut alguna cosa, etc.
-    function draw () {
-        // Aquí fem els nostres dibuixos i checks de colisions, ens serviria per el joc snake també, per exemple
+            // Esdeveniments per dispositius tàctils
+            document.addEventListener('touchstart', handleTouchMove, { passive: false });
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
 
-        // Per esborrar la pantalla després de cada frame i que no quedi el traçat de la pilota dibuixat
-        cleanCanvas()
+            function keyDownHandler(event) {
+                const { key } = event
+                // Saber la tecla que apreta l'usuari i ens assegurem que només entri una de les dues condicions, esquerra o dreta
+                // per si l'usuari té la brillant idea d'apretar les dues tecles a la vegada
+                if (key == 'Right' || key == 'ArrowRight') {
+                    rightPressed = true;
+                } else if (key == 'Left' || key == 'ArrowLeft') {
+                    leftPressed = true;
+                }
+            }
+
+            function keyUpHandler(event) {
+                const { key } = event
+                // Saber la tecla que apreta l'usuari i ens assegurem que només entri una de les dues condicions, a dalt o a baix
+                // per si l'usuari té la brillant idea d'apretar les dues tecles a la vegada
+                if (key == 'Right' || key == 'ArrowRight') {
+                    rightPressed = false;
+                } else if (key == 'Left' || key == 'ArrowLeft') {
+                    leftPressed = false;
+                }
+            }
+
+            function handleTouchMove(event) {
+                // Evitem el comportament predeterminat (com el desplaçament de la pàgina)
+                event.preventDefault();
+
+                // Agafem la primera posició tàctil
+                const touch = event.touches[0];
+
+                // Coordenades del toc
+                const touchX = touch.clientX;
+                const touchY = touch.clientY;
+
+                // Obtenim les coordenades relatives al canvas
+                const canvasRect = canvas.getBoundingClientRect();
+                const canvasX = touchX - canvasRect.left;
+                const canvasY = touchY - canvasRect.top;
+
+                // Verifiquem si el toc és dins la zona sota del paddle
+                if (canvasY > canvas.height - 50) {
+                    // Ajustem la posició del paddle segons la posició X del dit
+                    paddleX = canvasX - paddleWidth / 2;
+
+                    // Limitem el paddle perquè no surti dels marges del canvas
+                    if (paddleX < 0) {
+                        paddleX = 0;
+                    } else if (paddleX + paddleWidth > canvas.width) {
+                        paddleX = canvas.width - paddleWidth;
+                    }
+                }
+            }
+
+        }
+
+        // Es crida la funció a cada frame i constantment estarà dibuixant els elements de la pantalla
+        // depenent de com estiguin les variables en aquell moment depenent de si l'usuari ha mogut alguna cosa, etc.
+        function draw() {
+            // Aquí fem els nostres dibuixos i checks de colisions, ens serviria per el joc snake també, per exemple
+
+            // Per esborrar la pantalla després de cada frame i que no quedi el traçat de la pilota dibuixat
+            cleanCanvas()
 
 
-        // Dibuixar els elements 
-        drawBall();
-        drawPaddle();
-        drawBricks();
+            // Dibuixar els elements 
+            drawBall();
+            drawPaddle();
+            drawBricks();
 
 
-        // Colisions i moviments
-        collisionDetection();
-        ballMovement();
-        paddleMovement();
-       
+            // Colisions i moviments
+            collisionDetection();
+            ballMovement();
+            paddleMovement();
 
-        // requestAnimationFrame és un mètode que permet programar una funció perquè s'executi just abans de repintar-se
-        // la finestra i està coordinat amb el refresc de la nostra pantalla
 
-        // Es crida a si mateix, crida la funció constantment abans de que es repinti el monitor, en general a 60 Hz per tant
-        // s'executaria 60 vegades per segon ja que va amb la tasa de refresc de la pantalla, si deixem la finestra en segon pla no s'estarà
-        // executant les 60 vegades per segon per exemle, si no que baixarà les vegades que s'executa automàticament així no carrega tant el sistema
-        window.requestAnimationFrame(draw)
-    }
+            // requestAnimationFrame és un mètode que permet programar una funció perquè s'executi just abans de repintar-se
+            // la finestra i està coordinat amb el refresc de la nostra pantalla
 
-    // Inicialitzem la funció que fa el "loop infinit" per veure el que es va pintant per pantalla
-    draw ();
-    initEvents();
+            // Es crida a si mateix, crida la funció constantment abans de que es repinti el monitor, en general a 60 Hz per tant
+            // s'executaria 60 vegades per segon ja que va amb la tasa de refresc de la pantalla, si deixem la finestra en segon pla no s'estarà
+            // executant les 60 vegades per segon per exemle, si no que baixarà les vegades que s'executa automàticament així no carrega tant el sistema
+            window.requestAnimationFrame(draw)
+        }
 
-</script>
+        // Inicialitzem la funció que fa el "loop infinit" per veure el que es va pintant per pantalla
+        draw();
+        initEvents();
+
+    </script>
 </body>
+
 </html>
