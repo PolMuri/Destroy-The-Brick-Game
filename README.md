@@ -1,4 +1,4 @@
-# Destroy The Brick
+# Destroy The Brick Game
 
 This is a classic Brick Breaker game developed in JavaScript, utilizing the <canvas> element for rendering. The game is simple but engaging: destroy all the bricks by bouncing a ball off a paddle, avoiding missing the ball to keep the game going.
 
