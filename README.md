@@ -4,6 +4,8 @@ This is a classic Brick Breaker game developed in JavaScript, utilizing the <can
 
 Live demo: https://polmuri.github.io/Destroy-The-Brick-Game/
 
+This application was built as a learning exercise to improve my skills in Javascript, CSS and HTML. Expect unoptimized code!
+
 ## Features
 
 -Brick destruction: Break bricks by hitting them with the ball.
